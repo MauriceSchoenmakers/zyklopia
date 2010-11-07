@@ -1,44 +1,5 @@
 package com.zyklopia;
 
-
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.util.ArrayList;
-
-import android.app.Activity;
-import android.content.Context;
-import android.hardware.Camera;
-import android.location.LocationManager;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
-import android.net.LocalServerSocket;
-import android.net.LocalSocket;
-import android.net.LocalSocketAddress;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.os.SystemClock;
-import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
-import android.widget.MediaController;
-import android.widget.TextView;
-import android.widget.VideoView;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
