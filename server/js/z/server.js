@@ -7,8 +7,7 @@ j.log('hello');
 // WEB SERVER
 server.data={};
 
-j.log(node.server);
-
+/*
 http.createServer(function(K,S){var p=j.f.m.p('p'),s=j.f.m.p('s'),res=j.f.m.p('res'),doc='/home/ubuntu/zyklopia/';return S(
   {m:S.get('z(.*)\\.(.*)'),p:'p$1|s$2',f:j.s(S,S.send_file,[res,doc+'zyklopia/server/web/js/z',p,s])},
   {m:S.get('j(.*)\\.(.*)'),p:'p$1|s$2',f:j.s(S,S.send_file,[res,doc+'j/js/j',p,s])},
@@ -23,11 +22,11 @@ function test(m){var log=m.log||j.log;
   var r=node.server.test.request();
   r('GET','/x.html','','html file');
 }
-
+*/
 
 
 // MEDIA SERVER
-/*net.createServer(function (socket) {
+net.createServer(function (socket) {
   socket.setEncoding("utf8");
   socket.write("Echo server\r\n");
   socket.on("data", function (data) {
@@ -38,6 +37,6 @@ function test(m){var log=m.log||j.log;
     socket.end();
   });
 }).listen(9100);
-*/
+
 
 });
