@@ -1,5 +1,5 @@
 if(typeof void 0===typeof j)var j={module:require('j/module').module};j.module.use_require=true;
-j.module('z.server',['j','j.http.node.server','j.stream','http','net','sys'],function M(){var server=M.z.server,j=M.j,http=M.http,node=M.j.http.node,sys=M.sys;
+j.module('z.server',['j','j.http.node.server','j.s=j.stream','http','net','sys'],function M(){var server=M.z.server,j=M.j,http=M.http,node=M.j.http.node,sys=M.sys;
 
 j.log=function(m){M.sys.puts(m);return m;};
 j.log('hello'); 
