@@ -41,8 +41,6 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 		MediaRecorder.OnErrorListener, MediaPlayer.OnErrorListener,
 		OnClickListener, OnLongClickListener {
 
-	static boolean JUST_PLAY = false;
-
 	Thread t;
 	Context mContext = this;
 
@@ -51,6 +49,7 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 	private static int UPDATE_RECORD_TIME = 1;
 
 	private static final float VIDEO_ASPECT_RATIO = 176.0f / 144.0f;
+	private Camera mCamera;
 	private VideoPreview mVideoPreview;
 	private Button mStartStreaming;
 	private Button mStopStreaming;
@@ -162,6 +161,7 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 					isRecording = false;
 					stopVideoRecording();
 					// restart video
+					t.interrupt();
 					initializeVideo();
 				} catch (Throwable ex) {
 					//eat
@@ -193,8 +193,7 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 
 	public void onResume() {
 		super.onResume();
-		justplay = JUST_PLAY;
-		if (!justplay) {
+		if (true) {
 			receiver = new LocalSocket();
 			try {
 				lss = new LocalServerSocket("Zyklopia");
@@ -322,8 +321,6 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 		mSurfaceHolder = null;
 	}
 
-	Camera mCamera;
-
 	// initializeVideo() starts preview and prepare media recorder.
 	// Returns false if initializeVideo fails
 	private boolean initializeVideo() {
@@ -404,12 +401,18 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 					Socket rtp_socket;
 					try {
 						rtp_socket = new Socket(InetAddress.getByName("zyklopia.com"),9100);
-						
-						
-							
-//							rtp_socket = new RtpSocket(new SipdroidSocket(Receiver.engine(mContext).getLocalVideo()),
-//								InetAddress.getByName(Receiver.engine(mContext).getRemoteAddr()),
-//								Receiver.engine(mContext).getRemoteVideo());// port
+					
+//						 mVideoFrame.setVideoURI(Uri.parse("rtsp://"+Receiver.engine(mContext).getRemoteAddr()+"/"+
+//								 * Receiver.engine(mContext).getRemoteVideo()+"/sipdroid"));
+//								 */
+//							mVideoFrame
+//									.setMediaController(mMediaController = new MediaController(
+//											this));
+//							mVideoFrame.setOnErrorListener(this);
+//							mVideoFrame.requestFocus();
+//							mVideoFrame.start();
+					
+					
 					} catch (Exception e) {
 						Log.e(TAG,"Error opening socket: "+e);
 						Looper.prepare();
@@ -435,7 +438,9 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 					while (videoValid()) {
 						num = -1;
 						try {
-							num = fis.read(buffer,14+number,frame_size-number);
+							fis.read(buffer);
+							rtp_socket.getOutputStream().write(buffer);
+							//num  = fis.read(buffer,14+number,frame_size-number);
 						} catch (IOException e) {
 							Log.e(TAG,"Error opening socket: "+e);
 							break;
