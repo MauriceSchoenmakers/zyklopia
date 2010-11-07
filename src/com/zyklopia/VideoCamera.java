@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
-import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.LocalServerSocket;
@@ -17,6 +15,7 @@ import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.telephony.TelephonyManager;
@@ -30,8 +29,10 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.zyklopia.net.RtpPacket;
@@ -50,26 +51,22 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 	private static int UPDATE_RECORD_TIME = 1;
 
 	private static final float VIDEO_ASPECT_RATIO = 176.0f / 144.0f;
-	VideoPreview mVideoPreview;
-	SurfaceHolder mSurfaceHolder = null;
-	VideoView mVideoFrame;
-	MediaController mMediaController;
-
+	private VideoPreview mVideoPreview;
+	private Button mStartStreaming;
+	private Button mStopStreaming;
+	private SurfaceHolder mSurfaceHolder = null;
+	private VideoView mVideoFrame;
+	private MediaController mMediaController;
 	private MediaRecorder mMediaRecorder;
 	private boolean mMediaRecorderRecording = false;
-
 	private TextView mRecordingTimeView, mFPS;
-
-	ArrayList<MenuItem> mGalleryItems = new ArrayList<MenuItem>();
-
-	View mPostPictureAlert;
-	LocationManager mLocationManager = null;
-
 	private Handler mHandler = new MainHandler();
-	LocalSocket receiver, sender;
-	LocalServerSocket lss;
+	private LocalSocket receiver, sender;
+	private LocalServerSocket lss;
 	int obuffering;
 	int fps;
+	long startTime;
+	boolean isRecording;
 
 	/**
 	 * This Handler is used to post message back onto the main thread of the
@@ -79,7 +76,7 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 		@Override
 		public void handleMessage(Message msg) {
 			long now = System.currentTimeMillis(); 
-			long delta = now - SystemClock.elapsedRealtime(); // TODO Receiver.ccCall.base;
+			long delta = now - startTime;
 
 			long seconds = (delta + 500) / 1000; // round to nearest
 			long minutes = seconds / 60;
@@ -103,7 +100,11 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 				}
 				text = hoursString + ":" + text;
 			}
-			mRecordingTimeView.setText(text);
+			if (isRecording) {
+				mRecordingTimeView.setText("Recording time: "+text);
+			} else {
+				mRecordingTimeView.setText("");
+			}
 			if (fps != 0)
 				mFPS.setText(fps + "fps");
 			if (mVideoFrame != null) {
@@ -113,10 +114,8 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 				}
 				if (buffering != 0 && !mMediaRecorderRecording)
 					mVideoPreview.setVisibility(View.INVISIBLE);
-				if (obuffering != buffering && buffering == 100 /*
-																 * && rtp_socket
-																 * != null
-																 */) {
+				if (obuffering != buffering && buffering == 100) {
+						//&& rtp_socket != null) {
 					// send keep alive
 				}
 				obuffering = buffering;
@@ -138,13 +137,38 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 
-		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
 		// setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
 		requestWindowFeature(Window.FEATURE_PROGRESS);
 		setScreenOnFlag();
 		setContentView(R.layout.main);
 
+		mStartStreaming = (Button) findViewById(R.id.startStreaming);
+		mStartStreaming.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				try {
+					startTime = System.currentTimeMillis();
+					isRecording = true;
+					startVideoRecording();
+				} catch (Throwable ex) {
+					//eat
+				}
+			}
+		});
+		
+		mStopStreaming = (Button) findViewById(R.id.stopStreaming);
+		mStopStreaming.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				try {
+					isRecording = false;
+					stopVideoRecording();
+					// restart video
+					initializeVideo();
+				} catch (Throwable ex) {
+					//eat
+				}
+			}
+		});
+		
 		mVideoPreview = (VideoPreview) findViewById(R.id.camera_preview);
 		mVideoPreview.setAspectRatio(VIDEO_ASPECT_RATIO);
 
@@ -168,7 +192,8 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 	}
 
 	public void onResume() {
-		justplay = JUST_PLAY; // TODO intent.hasExtra("justplay");
+		super.onResume();
+		justplay = JUST_PLAY;
 		if (!justplay) {
 			receiver = new LocalSocket();
 			try {
@@ -187,7 +212,7 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 			mVideoPreview.setVisibility(View.VISIBLE);
 			if (!mMediaRecorderRecording)
 				initializeVideo();
-			startVideoRecording();
+			
 		} else { /*
 				 * TODO if ( Receiver.engine(mContext).getRemoteVideo() != 0 &&
 				 * PreferenceManager
@@ -212,7 +237,6 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 		mRecordingTimeView.setText("");
 		mRecordingTimeView.setVisibility(View.VISIBLE);
 		mHandler.sendEmptyMessage(UPDATE_RECORD_TIME);
-		super.onResume();
 	}
 
 	public void onPause() {
@@ -365,10 +389,7 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 
 	private void startVideoRecording() {
 		Log.i(TAG, "starting VideoRecording");
-		
-//        if (Receiver.listener_video == null) {
-//			Receiver.listener_video = this;   	
-//            RtpStreamSender.delay = 1;
+
 	        (t = new Thread() {
 				public void run() {
 					int frame_size = 1400;
@@ -382,7 +403,7 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 					double avglen = avgrate/20;
 					Socket rtp_socket;
 					try {
-						rtp_socket = new Socket(InetAddress.getByName("79.125.49.96"),9001);
+						rtp_socket = new Socket(InetAddress.getByName("zyklopia.com"),9100);
 						
 						
 							
@@ -391,6 +412,9 @@ public class VideoCamera extends Activity implements SurfaceHolder.Callback,
 //								Receiver.engine(mContext).getRemoteVideo());// port
 					} catch (Exception e) {
 						Log.e(TAG,"Error opening socket: "+e);
+						Looper.prepare();
+						Toast.makeText(VideoCamera.this,"Could not connect to zyklopia.com\nPLZ check your network settings!",
+								Toast.LENGTH_LONG).show();
 						return;
 					}		
 					

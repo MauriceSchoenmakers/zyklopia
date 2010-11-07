@@ -16,7 +16,10 @@ public final class R {
     public static final class id {
         public static final int camera_preview=0x7f050000;
         public static final int fps=0x7f050003;
+        public static final int pictureButtonLayout=0x7f050004;
         public static final int recording_time=0x7f050002;
+        public static final int startStreaming=0x7f050005;
+        public static final int stopStreaming=0x7f050006;
         public static final int video_frame=0x7f050001;
     }
     public static final class layout {
