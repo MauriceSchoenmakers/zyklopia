@@ -1,5 +1,5 @@
 if(typeof void 0===typeof j)var j={module:require('j/module').module};j.module.use_require=true;
-j.module('z.server',['j','node=j.http.server.node','http','net'],function M(){var server=M.z.server,j=M.j,http=M.http,node=M.node;
+j.module('z.server',['j','node=j.http.node.server','http','net'],function M(){var server=M.z.server,j=M.j,http=M.http,node=M.node;
 
 
 // WEB SERVER
@@ -8,7 +8,7 @@ http.createServer(function(K,S){var p=j.f.m.p('p'),s=j.f.m.p('s'),res=j.f.m.p('r
   {m:S.get('j(.*)\\.(.*)'),p:'p$1|s$2',f:j.s(S,S.send_file,[res,doc+'/j/js/j',p,s])},
   {m:S.get('/test'),f:function(m){S.test.html(m);test(m)}},
   {filter:true,m:S.get('(.*)/'),p:'d$1',f:function(m){m.url.pathname=m.d+'/index.html';}},
-  {m:S.get('(.*)\\.(.*)'),p:'p$1|s$2',f:j.s(S,S.send_file,[res,doc+'zyklopia/server/web',p,s])},
+  {m:S.get('(.*)\\.(.*)'),p:'p$1|s$2',f:j.s(S,S.send_file,[res,doc+'zyklopia/server/web',p,s])}
  
 );}(server.data,node.server)).listen(9000);
 
