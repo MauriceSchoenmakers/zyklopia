@@ -2,7 +2,7 @@ if(typeof void 0===typeof j)var j={module:require('j/module').module};j.module.u
 j.module('z.server',['j','node=j.http.node','http','net','sys'],function M(){var server=M.z.server,j=M.j,http=M.http,node=M.node,sys=M.sys;
 
 j.log=function(m){M.sys.puts(m);return m;};
-j.log('hello');
+j.log('hello'); 
 
 // WEB SERVER
 server.data={};
